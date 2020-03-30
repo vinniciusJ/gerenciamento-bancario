@@ -5,6 +5,10 @@ import javax.swing.JOptionPane;
 public class Banco{
 	String nome, nomeAgencia, codBanco;
 	private int pin;
+	int qtdCofresAtual;
+	final String[] bancosCredenciados = {"Banco do Brasil", "Itaú S.A.", "Santander S.A.", "Bradesco S.A.", "Caixa Econômica"};
+	final String[] codigoBancosCredenciados = {"001", "341", "033", "237", "104"};
+	
 	private ArrayList<Cofre> cofres = new ArrayList<>();
 	
 	private void imprimirMessagemErro(String msg) {
@@ -13,7 +17,9 @@ public class Banco{
 	
 	private boolean verificarPIN(int pinRequest) {
 		String pin = Integer.toString(pinRequest);
+		
 		if(pin.length() < 4 || pin.length() > 6) {
+			System.out.println(pin);
 			return false;
 		}
 		else {
@@ -29,16 +35,48 @@ public class Banco{
 			return 1;
 		}
 	}
-	public int setCofres(int pin, ArrayList<Cofre> cofres) {
-		if(this.pin == pin) {
-			this.cofres = cofres;
-			return 0;
-		}
-		else {
-			return 1;
+	private void contarCapacidade() {
+		for(int i = 0; i < this.cofres.size(); i++) {
+			if(this.cofres.get(i) != null) {
+				this.qtdCofresAtual++;
+			}
 		}
 	}
-	public ArrayList<Cofre> getCofre(){
+	public int adicionarCofre(String nomeCofre, String id, int PIN) {
+		Cofre c = new Cofre();
+		c.nomeCofre = nomeCofre;
+		c.id = id;
+		
+		if(c.setPIN(PIN) == 1) {
+			return 1;
+		}
+		this.cofres.add(c);
+		return 0;
+	}
+	public int excluirCofre(int pinRequest, int id) {
+		if(this.pin != pinRequest) {
+			return 1;
+		}
+		this.cofres.remove(id);
+		
+		return 0;
+	}
+	public ArrayList<Cofre> getCofres() {
 		return this.cofres;
+	}
+	public int getPIN() {
+		return this.pin;
+	}
+	public String toString() {
+		if(this.cofres.size() == 0) {
+			return "3";
+		}
+		
+		String conteudo = "<html><h3>Cofres existentes em " + this.nome + " " + this.codBanco + " - " + this.nomeAgencia + "</h3>";
+		for(int i = 0; i < cofres.size(); i++) {
+			conteudo += "<p style='font-size:16px;'> COFRE " + this.cofres.get(i).nomeCofre + " " +  this.cofres.get(i).id + "</p>";
+		}
+		conteudo += "</html>";
+		return conteudo;
 	}
 }

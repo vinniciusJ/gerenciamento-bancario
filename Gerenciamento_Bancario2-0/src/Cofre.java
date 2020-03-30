@@ -3,8 +3,8 @@ import java.util.ArrayList;
 import javax.swing.JOptionPane;
 
 public class Cofre {
-	String nomeCofre, id;
-	private int pin;
+	String nomeCofre = "", id = "";
+	private int pin = 0;
 	private int capacidadeAtual = 0;
 	final int capacidade = 19;
 	
@@ -17,11 +17,7 @@ public class Cofre {
 	 * 2 -> Sem espaço
 	 * 3 -> Sem dinheiro suficiente
 	 */
-	
-	private void imprimirMessagemErro(String msg) {
-		JOptionPane.showMessageDialog(null, msg);
-	}
-	
+
 	private boolean verificarPIN(int pinRequest) {
 		String pin = Integer.toString(pinRequest);
 		if(pin.length() < 4 || pin.length() > 6) {

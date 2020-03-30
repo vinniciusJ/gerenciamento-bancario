@@ -1,5 +1,5 @@
 public class Conversao {
-	String[] tiposMoedas = {"DOL", "EUR", "BRL"};
+	private String[] tiposMoedas = {"DOL", "EUR", "BRL"};
 	
 	public double converterParaDolar(String tipo, double valor) {
 		double valorConvertido = valor;
