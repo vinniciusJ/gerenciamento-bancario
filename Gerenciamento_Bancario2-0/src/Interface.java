@@ -8,7 +8,8 @@ public class Interface {
 	private static ArrayList<Banco> bancos = new ArrayList<>();
 	private static final String[] OPCOES_INICIAIS = {"Criar Banco", "Mostrar Bancos Criados", "Escolher Banco", "Excluir Banco", "Sair"};
 	private static final String[] OPCOES_BANCO = {"Criar Cofre", "Mostrar Cofres Criados", "Escolher Cofre", "Excluir Cofre", "Voltar"};
-	private static final String[] OPCOES_COFRE = {"Adicionar", "Retirar", "Valor estimado", "Cotação Atual", "Voltar"};
+	private static final String[] OPCOES_COFRE = {"Adicionar", "Retirar", "Voltar"};
+	private static final String[] TIPOS_MOEDA = {"Dolar", "Euro", "Real" };
 	
 	//---------------------------- Métodos de interface --------------------------------------//
 	
@@ -70,24 +71,46 @@ public class Interface {
 		voltar("/banco", idBanco, bancos.get(idBanco).getPIN());
 	}
 	public static void selecionarOpcao(int idBanco, int idCofre, int pin, int opcao) {
+		String[] escolha = {"Dinheiro", "Objeto"};
+		
 		switch(opcao) {
 		case 0:
-			// Adicionar algo no cofre
+			int op = lerOpcao("Adicionar", "Escolha o que deseja adicionar", escolha);
+			if(op == 0) {
+				String moeda = TIPOS_MOEDA[lerOpcao("Escolher qual moeda", "Escolha a moeda que deseja adicionar", TIPOS_MOEDA)];
+				double valor = Double.parseDouble(lerOpcao("Insira o valor que deseja adicionar"));
+				adicionarDinheiro(idBanco, idCofre, moeda, valor);
+			}
+			else {
+				String nomePertence = lerOpcao("Informe o nome do pertence: ");
+				String moeda = TIPOS_MOEDA[lerOpcao("Escolher qual moeda", "Escolha a moeda que deseja adicionar", TIPOS_MOEDA)];
+				double valor = Double.parseDouble(lerOpcao("Insira o valor estimado ao pertence: "));
+				adicionarObjeto(idBanco, idCofre, nomePertence, moeda, valor);
+			}
 			break;
 		case 1:
-			// Retirar algo
+			int option = lerOpcao("Retirar", "O que deseja retirar: ", escolha);
+			if(option == 0) {
+				String moeda = TIPOS_MOEDA[lerOpcao("Escolha qual moeda", "Escolha qual moeda deseja sacara", TIPOS_MOEDA)];
+				double valor = Double.parseDouble(lerOpcao("Insira o valor que deseja adicionar"));
+				retirarDinheiro(idBanco, idCofre, pin, moeda, valor);
+			}
+			else {
+				Object[] gavetas = quantidadeDeGavetas(idBanco, idCofre).toArray();
+				int idPertence = lerOpcao("Escolher pertence", "Escolha qual pertence deseja retirar: ", gavetas);
+				String nomeObjeto = bancos.get(idBanco).getCofres().get(idCofre).getPertence().get(idPertence).nomePertence;
+				int response = lerOpcao("Confirmar retirada", ("Você tem certeza que deseja retirar " + nomeObjeto));
+				
+				if(response == 0) {
+					retirarObjeto(idBanco, idCofre, pin, idPertence);
+				}
+			}
 			break;
 		case 2:
-			// Mostar valor estimado cofre
+			voltar("/banco/cofre", idBanco, idCofre, bancos.get(idBanco).getCofres().get(idCofre).getPIN());
 			break;
-		case 3:
-			// Mostrar Cotação Atual
-			break;
-		case 4:
-			break;
-		default:
-			
 		}
+		voltar("/banco/cofre", idBanco, idCofre, bancos.get(idBanco).getCofres().get(idCofre).getPIN());
 	}
 	
 	public static void imprimirMensagem(String message) {
@@ -250,14 +273,11 @@ public class Interface {
 		imprimirMensagem(bancos.get(idBanco).toString() == "3" ? "Nenhum cofre foi cadastrado ainda" : bancos.get(idBanco).toString());
 	}
 	public static void selecionarCofre(int idBanco) {
-		System.out.println(bancos.get(idBanco).getCofres().size() != 0);
 		if(bancos.get(idBanco).getCofres().size() != 0) {
 			int idCofre = lerOpcao("Escolher Cofre", "Escolha um cofre", formatarNomeCofre(idBanco));
 			String idMenu = bancos.get(idBanco).nome + " " + bancos.get(idBanco).codBanco + " - " + bancos.get(idBanco).nomeAgencia;
 			int pin = Integer.parseInt(lerOpcao("Digite a senha do cofre: "));
-			
-			System.out.println("AOBA");
-			
+						
 			if(pin == bancos.get(idBanco).getCofres().get(idCofre).getPIN()) {
 				selecionarOpcao(idBanco, idCofre, pin, lerOpcao(idMenu, "Escolha uma opção", OPCOES_COFRE));
 			}
@@ -292,8 +312,41 @@ public class Interface {
 		return conteudoFormatado;
 	}
 	//---------------------------------Metodos cofre----------------------------------------//
-	
+	public static void adicionarDinheiro(int idBanco, int idCofre, String tipoMoeda, double total) {
+		int response = bancos.get(idBanco).setCofre(idCofre, tipoMoeda, total);
+		while(response == 2) {
+			imprimirMensagem("Sem espaço no cofre para adicionar");
+		}
+	}
+	public static void adicionarObjeto(int idBanco, int idCofre, String nomePertence, String tipoMoeda, double total) {
+		int response = bancos.get(idBanco).setCofre(idCofre, nomePertence, tipoMoeda, total);
+		while(response == 2) {
+			imprimirMensagem("Sem espaço no cofre para adicionar");
+		}
+	}
+	public static void retirarDinheiro(int idBanco, int idCofre, int pin, String tipoMoeda, Double totalValor) {
+			int response = bancos.get(idBanco).setCofre(idCofre, pin, tipoMoeda, totalValor);
+			while(response == 3) {
+				imprimirMensagem("Sem saldo suficiente");
+			}
+	}
+	public static void retirarObjeto(int idBanco, int idCofre, int pin, int idObjeto) {
+		int response = bancos.get(idBanco).setCofre(idCofre, pin, idObjeto);
+		while(response == 1) {
+			imprimirMensagem("Senha incorreta, tente novamente");
+		}
+	}
+	private static ArrayList<String> quantidadeDeGavetas(int idBanco, int idCofre) {
+		ArrayList<String> gavetas = new ArrayList<>();
+		for(int i = 0 ; i < bancos.get(idBanco).getCofres().get(idCofre).getPertence().size(); i++){
+			gavetas.add("Gaveta " + (1 + i));
+		}
+		return gavetas;
+	}
+	//--------------------------------------------------------------------------------------//
 	public static void main(String[] args) {
-		abrirMenu("init");
+		int resp = lerOpcao("id", "escolhe");
+		System.out.println(resp);
+		//abrirMenu("init");
 	}
 }

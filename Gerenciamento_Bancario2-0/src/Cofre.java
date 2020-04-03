@@ -8,7 +8,7 @@ public class Cofre {
 	private int capacidadeAtual = 0;
 	final int capacidade = 19;
 	
-	private Pertence[] pertences = new Pertence[capacidade];
+	private ArrayList<Pertence> pertences = new ArrayList<>();
 	
 	/*
 	 *	REGRAS DE STATUS
@@ -16,8 +16,10 @@ public class Cofre {
 	 * 1 -> ERRO DE SENHA
 	 * 2 -> Sem espaço
 	 * 3 -> Sem dinheiro suficiente
+	 * 4 -> Dinheiro a mais
 	 */
 
+	// BRL EUR E DOL
 	private boolean verificarPIN(int pinRequest) {
 		String pin = Integer.toString(pinRequest);
 		if(pin.length() < 4 || pin.length() > 6) {
@@ -45,44 +47,17 @@ public class Cofre {
 		if(this.verificarCapacidade()) {
 			return 2;
 		}
+		Pertence p = new Pertence();
+		p.moeda = tipoMoeda;
+		p.valor = value;
+		p.tipoPertence = "Dinheiro";
+		this.pertences.add(p);
 		
-		int id = this.capacidadeAtual;		
-		
-		if(this.pertences[id] == null) {
-			this.pertences[id].valor = value;
-			this.pertences[id].moeda = tipoMoeda;
-		}
-		else if(this.pertences[id].valor < 10000 && (this.pertences[id].valor + value) < 10000) {
-			this.pertences[id].valor += value;
-			this.pertences[id ].moeda = tipoMoeda;
-		}
-		else if(id != this.capacidade){
-			this.pertences[id + 1].valor = value;
-			this.pertences[id + 1].moeda = tipoMoeda;
-		}
-		else {
-			return 2;
-		}
 		return 0;
 	}
-		
-	private void contarCapacidade() {
-		for(int i = 0; i < this.pertences.length; i++) {
-			if(this.pertences[i] != null) {
-				if(this.pertences[i].tipoPertence == "Dinheiro") {
-					if(this.pertences[i].valor > 10000) {
-						this.capacidadeAtual++;
-					}
-				}
-				else {
-					this.capacidadeAtual++;
-				}
-			}
-		}
-		this.capacidadeAtual--;
-	}
+
 	private boolean verificarCapacidade() {
-		contarCapacidade();
+		this.capacidadeAtual = this.pertences.size();
 		return this.capacidadeAtual == this.capacidade ? true : false;
 	}
 
@@ -90,24 +65,15 @@ public class Cofre {
 		if(this.verificarCapacidade()) {
 			return 2;
 		}
-		int id = this.capacidadeAtual;
 		
-		if(this.pertences[id] == null) {
-			this.pertences[id].nomePertence = nome;
-			this.pertences[id].moeda = tipoMoeda;
-			this.pertences[id].valor = value;
-		}
-		else if(id != this.capacidade){
-			this.pertences[id + 1] = this.pertences[id];
-			Pertence p = new Pertence();
-			p.moeda = tipoMoeda;
-			p.nomePertence = nome;
-			p.valor = value;
-			this.pertences[id] = p;
-		}
-		else {
-			return 2;
-		}
+		Pertence p = new Pertence();
+		p.nomePertence = nome;
+		p.moeda = tipoMoeda;
+		p.valor = value;
+		p.tipoPertence = "Objeto";
+		
+		this.pertences.add(p);
+		
 		return 0;
 	}
 	//----------------------------------Retirar Pertence ------------------------------------------//
@@ -116,12 +82,12 @@ public class Cofre {
 			return 1;
 		}
 		double valorAtual = 0;
-		for(int i = 0; i < this.pertences.length; i++) {
-			if(this.pertences[i].tipoPertence.equals("Dinheiro")) {
-				if(this.pertences[i].moeda.equals(tipoMoeda)) {
-					if(valorAtual <= valor) {
-						valorAtual += this.pertences[i].valor;
-						this.pertences[i].valor = 0;
+		for(int i = 0; i < this.pertences.size(); i++) {
+			if(this.pertences.get(i).tipoPertence.equals("Dinheiro")) {
+				if(this.pertences.get(i).moeda.equals(tipoMoeda)) {
+					while(valorAtual <= valor) {
+						valorAtual++;
+						this.pertences.get(i).valor--;
 					}
 				}
 			}
@@ -132,17 +98,11 @@ public class Cofre {
 		}
 		return 0;
 	}
-	public int retirarObjeto(int pin, String nome) {
+	public int retirarObjeto(int pin, int id) {
 		if(this.pin == pin) {
 			return 1;
 		}
-		for(int i = 0; i < this.pertences.length; i++) {
-			if(this.pertences[i].tipoPertence.equals("Objeto")) {
-				if(this.pertences[i].nomePertence.equals(nome)) {
-					this.pertences[i] = null;
-				}
-			}
-		}
+		this.pertences.remove(id);
 		
 		return 0;
 	}
@@ -150,7 +110,7 @@ public class Cofre {
 	public int getPIN() {
 		return this.pin;
 	}
-	public Pertence[] getPertence(){
+	public ArrayList<Pertence> getPertence(){
 		return this.pertences;
 	}
 	public int getCapacidadeAtual() {
@@ -159,25 +119,26 @@ public class Cofre {
 	public double getSaldo() {
 		Conversao conversor = new Conversao();
 		double valorAtual = 0;
-		for(int i = 0; i < this.pertences.length; i++) {
-			valorAtual += conversor.converterParaDolar(this.pertences[i].moeda, this.pertences[i].valor);
+		for(int i = 0; i < this.pertences.size(); i++) {
+			valorAtual += conversor.converterParaDolar(this.pertences.get(i).moeda,this.pertences.get(i).valor);
 		}
 		return valorAtual;
 	}
+	
 	//---------------------------------------------------------------------------------------//
 	public String toString(int i) {
 		String conteudo = "<html><ul>";
-		if(this.pertences[i].tipoPertence == "Dinheiro") {
-			conteudo += "<li> Pertence: " + this.pertences[i].tipoPertence + "</li>" + 
-					"<li> Moeda: " + this.pertences[i].moeda + " </li>" + 
-					"<li> Valor: " + (this.pertences[i].moeda == "DOL" ? "$" : (this.pertences[i].moeda == "EUR" ? "€" : "R$")) +this.pertences[i].valor + "</li>" + 
+		if(this.pertences.get(i).tipoPertence == "Dinheiro") {
+			conteudo += "<li> Pertence: " + this.pertences.get(i).tipoPertence + "</li>" + 
+					"<li> Moeda: " + this.pertences.get(i).moeda + " </li>" + 
+					"<li> Valor: " + (this.pertences.get(i).moeda == "DOL" ? "$" : (this.pertences.get(i).moeda == "EUR" ? "€" : "R$")) + this.pertences.get(i).valor + "</li>" + 
 					"<hr/><br/>";
 		}
 		else {
-			conteudo += "<li> Pertence: " + this.pertences[i].tipoPertence + "</li>" + 
-					"<li> Nome do pertence: " + this.pertences[i].nomePertence + "</li>" +
-					"<li> Moeda: " + this.pertences[i].moeda + " </li>" + 
-					"<li> Valor: " + (this.pertences[i].moeda == "DOL" ? "$" : (this.pertences[i].moeda == "EUR" ? "€" : "R$")) +this.pertences[i].valor + "</li>" + 
+			conteudo += "<li> Pertence: " + this.pertences.get(i).tipoPertence + "</li>" + 
+					"<li> Nome do pertence: " + this.pertences.get(i).nomePertence + "</li>" +
+					"<li> Moeda: " + this.pertences.get(i).moeda + " </li>" + 
+					"<li> Valor: " + (this.pertences.get(i).moeda == "DOL" ? "$" : (this.pertences.get(i).moeda == "EUR" ? "€" : "R$")) +this.pertences.get(i).valor + "</li>" + 
 					"<hr/><br/>";
 		}
 		conteudo += "</ul></html>";

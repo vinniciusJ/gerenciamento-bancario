@@ -79,4 +79,27 @@ public class Banco{
 		conteudo += "</html>";
 		return conteudo;
 	}
+	//---------------------------------------------------------------------//
+	public int setCofre(int idCofre, String tipoMoeda, double valor ) {;
+		int response = this.cofres.get(idCofre).adicionarDinheiro(tipoMoeda, valor);
+		
+		return response;
+	}
+	public int setCofre(int idCofre, String nome, String tipoMoeda, double valor ) {
+		int response = this.cofres.get(idCofre).adicionarObjeto(nome, tipoMoeda, valor);
+		
+		return response;
+	}
+	public int setCofre(int idCofre, int pin, String tipoMoeda, double valor) {
+		int response = this.cofres.get(idCofre).retirarDinheiro(pin, tipoMoeda, valor);
+		return response;
+	}
+	public int setCofre(int idCofre, int pin, int idObjeto) {
+		int response = this.cofres.get(idCofre).retirarObjeto(pin, idObjeto);
+		return response;
+	}
+	public int setCofre(int idCofre, int pin) {
+		int response = this.cofres.get(idCofre).setPIN(pin);
+		return response;
+	}
 }
